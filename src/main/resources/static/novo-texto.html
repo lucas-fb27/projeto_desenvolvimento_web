@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog - Novo Texto</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous" />
+  <style>
+    .form-container {
+      max-width: 800px;
+      margin: 30px auto;
+      background-color: #f9f9f9;
+      padding: 40px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .form-container h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .required {
+      color: red;
+    }
+    footer {
+      margin-top: auto;
+      background-color: #f8f9fa;
+      padding: 20px 0;
+      border-top: 1px solid #dee2e6;
+    }
+  </style>
+</head>
+<body class="d-flex flex-column h-100">
+
+  <div class="container-lg flex-shrink-0">
+    <div class="row justify-content-center">
+      <main class="col-lg-8 col-md-10">
+        <div class="form-container">
+          <h1>Novo texto</h1>
+
+          <form id="formTexto" novalidate>
+            <div class="row mb-3">
+              <label for="txtTitulo" class="col-sm-2 col-form-label">Título <span class="required">*</span></label>
+              <div class="col-sm-10">
+                <input type="text" name="titulo" value="" id="txtTitulo" placeholder="Título do texto"
+                  class="form-control" maxlength="200" required />
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <label for="txtAutor" class="col-sm-2 col-form-label">Autor <span class="required">*</span></label>
+              <div class="col-sm-10">
+                <input type="text" name="autor" value="" id="txtAutor" placeholder="Nome do autor"
+                  class="form-control" maxlength="100" required />
+                <div class="invalid-feedback"></div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <label for="txtDataPublicacao" class="col-sm-2 col-form-label">Data de publicação <span class="required">*</span></label>
+              <div class="col-sm-10">
+                <input type="date" name="dataPublicacao" value="" id="txtDataPublicacao" 
+                  class="form-control" required />
+                <div class="invalid-feedback"></div>
+                <div class="form-text">Data em que o texto será publicado (pode ser no passado ou futuro).</div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <label for="txtTexto" class="col-sm-2 col-form-label">Texto <span class="required">*</span></label>
+              <div class="col-sm-10">
+                <textarea name="texto" id="txtTexto" placeholder="Conteúdo do texto (mínimo 10 caracteres)"
+                  class="form-control" rows="8" required></textarea>
+                <div class="invalid-feedback"></div>
+                <div class="form-text">
+                  <span id="contadorCaracteres">0</span> caracteres
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="d-grid">
+                  <a href="index.html" role="button" class="btn btn-outline-dark">
+                    <i class="fas fa-arrow-left"></i> Cancelar
+                  </a>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="mt-auto">
+    <div class="container">
+      <div class="text-center">
+        <p class="mb-0"><strong>Integrantes:</strong> Gustavo Patriota e Lucas Freitas</p>
+        <p class="mb-0"><strong>Turma:</strong> 3A</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
+    crossorigin="anonymous"></script>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:8080/api/textos';
+
+    const txtTexto = document.getElementById('txtTexto');
+    const contadorCaracteres = document.getElementById('contadorCaracteres');
+
+    txtTexto.addEventListener('input', function() {
+      contadorCaracteres.textContent = this.value.length;
+    });
+
+    function limparValidacoes() {
+      const inputs = document.querySelectorAll('.form-control');
+      inputs.forEach(input => {
+        input.classList.remove('is-invalid', 'is-valid');
+        const feedback = input.nextElementSibling;
+        if (feedback && feedback.classList.contains('invalid-feedback')) {
+          feedback.textContent = '';
+        }
+      });
+    }
+
+    function mostrarErroValidacao(campo, mensagem) {
+      campo.classList.add('is-invalid');
+      const feedback = campo.nextElementSibling;
+      if (feedback && feedback.classList.contains('invalid-feedback')) {
+        feedback.textContent = mensagem;
+      }
+    }
+
+    function validarFormulario() {
+      limparValidacoes();
+      let valido = true;
+
+      const titulo = document.getElementById('txtTitulo');
+      const autor = document.getElementById('txtAutor');
+      const dataPublicacao = document.getElementById('txtDataPublicacao');
+      const texto = document.getElementById('txtTexto');
+
+      if (!titulo.value.trim()) {
+        mostrarErroValidacao(titulo, 'O título é obrigatório');
+        valido = false;
+      } else if (titulo.value.trim().length > 200) {
+        mostrarErroValidacao(titulo, 'O título deve ter no máximo 200 caracteres');
+        valido = false;
+      }
+
+      if (!autor.value.trim()) {
+        mostrarErroValidacao(autor, 'O autor é obrigatório');
+        valido = false;
+      } else if (autor.value.trim().length > 100) {
+        mostrarErroValidacao(autor, 'O nome do autor deve ter no máximo 100 caracteres');
+        valido = false;
+      }
+
+      if (!dataPublicacao.value) {
+        mostrarErroValidacao(dataPublicacao, 'A data de publicação é obrigatória');
+        valido = false;
+      }
+
+      if (!texto.value.trim()) {
+        mostrarErroValidacao(texto, 'O texto é obrigatório');
+        valido = false;
+      } else if (texto.value.trim().length < 10) {
+        mostrarErroValidacao(texto, 'O texto deve ter no mínimo 10 caracteres');
+        valido = false;
+      }
+
+      return valido;
+    }
+
+    async function salvarTexto(event) {
+      event.preventDefault();
+      
+      if (!validarFormulario()) {
+        return;
+      }
+
+      const dados = {
+        titulo: document.getElementById('txtTitulo').value.trim(),
+        autor: document.getElementById('txtAutor').value.trim(),
+        dataPublicacao: document.getElementById('txtDataPublicacao').value,
+        texto: document.getElementById('txtTexto').value.trim()
+      };
+
+      try {
+        const response = await fetch(API_BASE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+
+        if (response.ok) {
+          let resultado;
+          try {
+            resultado = await response.json();
+          } catch (e) {
+            resultado = { mensagem: 'Texto salvo com sucesso!' };
+          }
+          
+          alert(resultado.mensagem || 'Texto salvo com sucesso!');
+          window.location.href = 'index.html';
+        } else {
+          const resultado = await response.json();
+          throw new Error(resultado.erro || 'Erro ao salvar o texto');
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    document.getElementById('formTexto').addEventListener('submit', salvarTexto);
+  </script>
+</body>
+</html>
