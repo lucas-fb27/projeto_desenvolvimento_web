@@ -18,29 +18,45 @@
       crossorigin="anonymous"
     />
     <style>
+      body {
+        background-color: #e8e8e8;
+      }
+      .container-lg {
+        background-color: #d4d4d4;
+        padding: 30px;
+        border-radius: 10px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+      h1 {
+        color: #2c2c2c;
+      }
       .texto-card {
-        border: 1px solid #ddd;
+        border: 1px solid #a8a8a8;
         border-radius: 8px;
         padding: 20px;
         margin-bottom: 20px;
-        background-color: #f9f9f9;
+        background-color: #f5f5f5;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
       .texto-titulo {
         font-size: 1.5rem;
         font-weight: bold;
         margin-bottom: 10px;
+        color: #2c2c2c;
       }
       .texto-autor {
         font-weight: 600;
-        color: #666;
+        color: #4a4a4a;
       }
       .texto-data {
-        color: #999;
+        color: #6a6a6a;
         font-size: 0.9rem;
       }
       .texto-conteudo {
         margin-top: 15px;
         line-height: 1.6;
+        color: #3a3a3a;
       }
       .status-nao-publicado {
         background-color: #ff6b35;
@@ -58,9 +74,29 @@
       }
       footer {
         margin-top: auto;
-        background-color: #f8f9fa;
+        background-color: #c8c8c8;
         padding: 20px 0;
-        border-top: 1px solid #dee2e6;
+        border-top: 1px solid #a8a8a8;
+        color: #2c2c2c;
+      }
+      .alert-info {
+        background-color: #f5f5f5;
+        border-color: #a8a8a8;
+        color: #2c2c2c;
+      }
+      #loading {
+        color: #2c2c2c;
+      }
+      .modal-content {
+        background-color: #f5f5f5;
+      }
+      .modal-header {
+        background-color: #d4d4d4;
+        border-bottom: 1px solid #a8a8a8;
+      }
+      .modal-footer {
+        background-color: #d4d4d4;
+        border-top: 1px solid #a8a8a8;
       }
     </style>
   </head>
@@ -121,6 +157,53 @@
         </div>
       </div>
     </footer>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div
+      class="modal fade"
+      id="modalConfirmacaoExclusao"
+      tabindex="-1"
+      aria-labelledby="modalConfirmacaoExclusaoLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalConfirmacaoExclusaoLabel">
+              <i class="fas fa-exclamation-triangle text-warning"></i>
+              Confirmar Exclusão
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Fechar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Deseja realmente excluir o texto:</p>
+            <p><strong id="textoTituloExclusao"></strong></p>
+            <p class="text-muted">Esta ação não poderá ser desfeita.</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              id="btnConfirmarExclusao"
+            >
+              <i class="fas fa-trash"></i> Excluir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
@@ -223,13 +306,92 @@
         window.location.href = `editar-texto.html?id=${id}`;
       }
 
-      async function confirmarExclusao(id, titulo) {
-        const confirmacao = confirm(
-          `Deseja realmente excluir o texto "${titulo}"?`
-        );
-        if (confirmacao) {
-          await excluirTexto(id);
+      let textoIdParaExcluir = null;
+      let modalExclusao = null;
+
+      function confirmarExclusao(id, titulo) {
+        textoIdParaExcluir = id;
+        document.getElementById('textoTituloExclusao').textContent = titulo;
+        
+        if (!modalExclusao) {
+          const modalElement = document.getElementById('modalConfirmacaoExclusao');
+          if (typeof bootstrap !== 'undefined') {
+            modalExclusao = new bootstrap.Modal(modalElement);
+          } else {
+            // Fallback para usar atributos data do Bootstrap
+            modalElement.classList.add('show');
+            modalElement.style.display = 'block';
+            document.body.classList.add('modal-open');
+            
+            // Criar backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = 'customBackdrop';
+            document.body.appendChild(backdrop);
+            return;
+          }
         }
+        modalExclusao.show();
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        document
+          .getElementById('btnConfirmarExclusao')
+          .addEventListener('click', async function () {
+            if (textoIdParaExcluir !== null) {
+              if (modalExclusao) {
+                modalExclusao.hide();
+              } else {
+                // Fechar modal manual
+                const modalElement = document.getElementById('modalConfirmacaoExclusao');
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.getElementById('customBackdrop');
+                if (backdrop) backdrop.remove();
+              }
+              await excluirTexto(textoIdParaExcluir);
+              textoIdParaExcluir = null;
+            }
+          });
+
+        document
+          .getElementById('modalConfirmacaoExclusao')
+          .addEventListener('hidden.bs.modal', function () {
+            textoIdParaExcluir = null;
+          });
+
+        // Adicionar listener para fechar modal com botão close ou backdrop
+        const modalElement = document.getElementById('modalConfirmacaoExclusao');
+        
+        // Fechar modal ao clicar no X
+        modalElement.querySelector('.btn-close').addEventListener('click', function() {
+          fecharModal();
+        });
+
+        // Fechar modal ao clicar no botão Cancelar
+        const btnCancelar = modalElement.querySelector('.btn-secondary[data-bs-dismiss="modal"]');
+        if (btnCancelar) {
+          btnCancelar.addEventListener('click', function() {
+            fecharModal();
+          });
+        }
+        
+        carregarTextos();
+      });
+
+      function fecharModal() {
+        const modalElement = document.getElementById('modalConfirmacaoExclusao');
+        if (modalExclusao) {
+          modalExclusao.hide();
+        } else {
+          modalElement.classList.remove('show');
+          modalElement.style.display = 'none';
+          document.body.classList.remove('modal-open');
+          const backdrop = document.getElementById('customBackdrop');
+          if (backdrop) backdrop.remove();
+        }
+        textoIdParaExcluir = null;
       }
 
       async function excluirTexto(id) {
@@ -253,8 +415,6 @@
           alert(error.message);
         }
       }
-
-      document.addEventListener('DOMContentLoaded', carregarTextos);
     </script>
   </body>
 </html>
