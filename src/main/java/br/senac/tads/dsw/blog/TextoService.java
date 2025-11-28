@@ -1,5 +1,6 @@
 package br.senac.tads.dsw.blog;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +59,10 @@ public class TextoService {
     }
 
     public Texto addNew(Texto texto) {
-        texto.setPublicado(true);
+        LocalDate hoje = LocalDate.now();
+        boolean publicado = !texto.getDataPublicacao().isAfter(hoje);
+        texto.setPublicado(publicado);
+
         TextoEntity entity = toEntity(texto);
         entity = textoRepository.save(entity);
         return toDto(entity);
@@ -69,14 +73,17 @@ public class TextoService {
         if (optTexto.isEmpty()) {
             return null;
         }
-        
+
+        LocalDate hoje = LocalDate.now();
+        boolean publicado = !texto.getDataPublicacao().isAfter(hoje);
+
         TextoEntity entity = optTexto.get();
         entity.setTitulo(texto.getTitulo());
         entity.setAutor(texto.getAutor());
         entity.setDataPublicacao(texto.getDataPublicacao());
         entity.setTexto(texto.getTexto());
-        entity.setPublicado(true);
-        
+        entity.setPublicado(publicado);
+
         entity = textoRepository.save(entity);
         return toDto(entity);
     }
